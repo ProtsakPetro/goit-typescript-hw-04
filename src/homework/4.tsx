@@ -8,7 +8,6 @@ type SelectedMenu = { id: MenuIds };
 
 const MenuSelectedContext = createContext<SelectedMenu | undefined>(undefined);
 
-
 type MenuAction = {
   onSelectedMenu: (menu: SelectedMenu) => void;
 };
@@ -26,26 +25,22 @@ function MenuProvider({ children }: PropsProvider) {
 
   const menuContextAction = useMemo(
     () => ({
-      onSelectedMenu: setSelectedMenu,
+      onSelectedMenu: (menu: SelectedMenu) => {
+        setSelectedMenu(menu);
+      },
     }),
     []
   );
 
-  const menuContextSelected = useMemo(
-    () => ({
-      selectedMenu,
-    }),
-    [selectedMenu]
-  );
-
   return (
     <MenuActionContext.Provider value={menuContextAction}>
-      <MenuSelectedContext.Provider value={menuContextSelected}>
+      <MenuSelectedContext.Provider value={selectedMenu}>
         {children}
       </MenuSelectedContext.Provider>
     </MenuActionContext.Provider>
   );
 }
+
 
 type PropsMenu = {
   menus: Menu[];
@@ -53,18 +48,23 @@ type PropsMenu = {
 
 function MenuComponent({ menus }: PropsMenu) {
   const { onSelectedMenu } = useContext(MenuActionContext);
-  const { id } = useContext(MenuSelectedContext);
+  const selectedMenu = useContext(MenuSelectedContext);
 
-  return (
-    <>
-      {menus.map((menu) => (
-        <div key={menu.id} onClick={() => onSelectedMenu({ id: menu.id })}>
-          {menu.title}{" "}
-          {id === menu.id ? "Selected" : "Not selected"}
-        </div>
-      ))}
-    </>
-  );
+  if (selectedMenu) {
+    return (
+      <>
+       {menus.map((menu) => (
+  <div key={menu.id} onClick={() => onSelectedMenu({ id: menu.id })}>
+    {menu.title}{" "}
+    {selectedMenu.id === menu.id ? "Selected" : "Not selected"}
+  </div>
+))}
+
+      </>
+    );
+  }
+
+  return null;
 }
 
 export function ComponentApp() {
@@ -89,4 +89,3 @@ export function ComponentApp() {
     </MenuProvider>
   );
 }
-
